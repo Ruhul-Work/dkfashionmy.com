@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion'
+import { Link, useNavigate } from 'react-router-dom'
 import { CurtainImage, SectionHeading, Counter } from '../components/motion-kit'
 import SoftImage from '../components/SoftImage'
 import { lenisGo } from '../components/SmoothScroll'
@@ -80,12 +81,11 @@ export function Making() {
   )
 }
 
-/* ---------------- E-COMMERCE COMING SOON BANNER ---------------- */
+/* ---------------- SHOPEE BANNER ---------------- */
+
+const SHOPEE_STORE_URL = import.meta.env.VITE_SHOPEE_URL ?? ''
 
 export function ComingSoon() {
-  const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
-
   return (
     <section id="soon" className="px-4 py-16 lg:px-8">
       <motion.div
@@ -116,57 +116,39 @@ export function ComingSoon() {
               animate={{ scale: [1, 1.5, 1] }}
               transition={{ repeat: Infinity, duration: 1.5 }}
             />
-            Coming soon
+            Now on Shopee
           </motion.span>
 
           <h2 className="font-display text-3xl leading-tight sm:text-5xl">
-            Our shop opens its <em className="italic text-caramel-deep">doors</em> soon
+            The shop is open, <em className="italic text-caramel-deep">on Shopee</em>
           </h2>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-moss/70">
-            Online ordering begins this season. Leave your email and we will
-            whisper to you first — sizes restock, pop-ups, early access.
+            Every piece lives on our Shopee store now — same small batches,
+            same traceable fabric, delivered nationwide with Shopee&apos;s
+            protected checkout.
           </p>
 
-          <div className="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:flex-row">
-            <AnimatePresence mode="wait">
-              {sent ? (
-                <motion.div
-                  key="done"
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-ivory px-6 py-4 text-sm font-medium text-moss shadow-soft"
-                  initial={{ opacity: 0, scale: 0.94 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <span className="text-lg text-eucalyptus-deep">✓</span> You are on the list — talk soon
-                </motion.div>
-              ) : (
-                <motion.form
-                  key="form"
-                  className="flex w-full flex-col gap-3 sm:flex-row"
-                  exit={{ opacity: 0, y: -10 }}
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    if (email.trim()) setSent(true)
-                  }}
-                >
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="flex-1 rounded-full border border-transparent bg-ivory px-6 py-4 text-sm text-moss shadow-soft outline-none placeholder:text-olive/60 focus:border-caramel"
-                  />
-                  <button
-                    type="submit"
-                    className="rounded-full bg-moss px-7 py-4 text-sm font-medium text-ivory shadow-soft transition-colors hover:bg-caramel-deep"
-                  >
-                    Notify me
-                  </button>
-                </motion.form>
-              )}
-            </AnimatePresence>
-          </div>
+          {SHOPEE_STORE_URL ? (
+            <a
+              href={SHOPEE_STORE_URL}
+              target="_blank"
+              rel="noreferrer"
+              data-cursor="hover"
+              className="mx-auto mt-8 inline-flex items-center gap-3 rounded-full bg-moss px-9 py-4 text-sm font-medium text-ivory shadow-soft transition-colors hover:bg-caramel-deep"
+            >
+              Visit our Shopee store
+              <span aria-hidden className="text-lg leading-none">↗</span>
+            </a>
+          ) : (
+            <a
+              href="/shop"
+              data-cursor="hover"
+              className="mx-auto mt-8 inline-flex items-center gap-3 rounded-full bg-moss px-9 py-4 text-sm font-medium text-ivory shadow-soft transition-colors hover:bg-caramel-deep"
+            >
+              Visit our Shopee store
+              <span aria-hidden className="text-lg leading-none">↗</span>
+            </a>
+          )}
 
           <p className="mt-6 text-xs text-moss/70">
             Questions in the meantime?{' '}
@@ -328,19 +310,29 @@ const stats = [
 
 const quotes = [
   {
-    text: 'My kurta has been washed maybe ninety times and it looks more mine every month.',
-    who: 'Nadia R.',
-    from: 'Dhanmondi',
+    text: 'My baju kurta has been washed maybe ninety times and it looks more mine every month.',
+    who: 'Nur A.',
+    from: 'Bukit Bintang, KL',
   },
   {
     text: 'They repaired a twelve-year-old shirt I brought in like it was a family heirloom.',
-    who: 'Tanvir A.',
-    from: 'Uttara',
+    who: 'Wei Ling T.',
+    from: 'George Town, Penang',
   },
   {
-    text: 'Fabric you can trace is rare. Fabric that feels this calm — rarer.',
-    who: 'Sharmin K.',
-    from: 'Gulshan',
+    text: 'Kain yang boleh dijejak itu jarang. Kain yang terasa tenang seperti ini — lagi jarang lagi.',
+    who: 'Amirul H.',
+    from: 'Johor Bahru, Johor',
+  },
+  {
+    text: 'The fit was spot on from the very first try. Not a single alteration needed.',
+    who: 'Priya M.',
+    from: 'Brickfields, KL',
+  },
+  {
+    text: 'Saya pesan Ahad malam, terus pakai Isnin pagi. Penghantaran kat sini memang cepat.',
+    who: 'Arjun S.',
+    from: 'Tanjong Tokong, Penang',
   },
 ]
 
@@ -418,7 +410,7 @@ function QuotesCarousel() {
 const faqs = [
   { q: 'How should I care for handloom cotton and linen?', a: 'Cold wash, mild detergent, dry in shade. The fabric relaxes over the first three washes — that is normal and part of the break-in.' },
   { q: 'Do you offer custom sizing?', a: 'Yes. Every piece can be re-cut to your measurements. Book a fitting through the contact page and our tailor will map you.' },
-  { q: 'When does online ordering start?', a: 'The e-shop opens soon. Join the notify list on this page and you will get first access, including restock alerts.' },
+  { q: 'Where can I buy your pieces online?', a: 'Every piece is listed on our Shopee store, with prices, sizes and stock kept in step with the atelier. Or call us and we will set one aside for you.' },
   { q: 'What is the repair policy?', a: 'Any DK piece, any age, repaired free of charge at our atelier. Postal repairs are supported within the country.' },
   { q: 'Do you restock sold-out designs?', a: 'Small-batch designs return in limited runs. Notify-list members are alerted before the public announcement.' },
 ]
@@ -481,7 +473,7 @@ export function ContactStrip() {
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 lg:grid-cols-3 lg:px-8">
         {[
           { label: 'Visit', value: 'Lot 3-22, Berjaya Times Square, Kuala Lumpur', icon: '◎' },
-          { label: 'Hours', value: 'Sat–Thu · 10:30 to 20:30 · Friday closed', icon: '◷' },
+          { label: 'Hours', value: 'Mon–Sun · 10:00 AM to 10:00 PM', icon: '◷' },
           { label: 'Write', value: 'dkfashionkwc@gmail.com · +60 11-3745 5473', icon: '✎' },
         ].map((c, i) => (
           <motion.div
@@ -505,6 +497,11 @@ export function ContactStrip() {
 /* ---------------- FOOTER ---------------- */
 
 export function Footer() {
+  const navigate = useNavigate()
+  const goHomeSection = (id: string) => {
+    navigate('/')
+    window.setTimeout(() => lenisGo(`#${id}`), 450)
+  }
   return (
     <footer className="relative overflow-hidden bg-moss pt-16 text-ivory">
       {/* big outlined wordmark marquee */}
@@ -535,10 +532,11 @@ export function Footer() {
         <div className="text-sm text-ivory/70">
           <p className="mb-3 text-xs uppercase tracking-[0.3em] text-ivory/40">Navigate</p>
           <ul className="flex flex-col gap-2">
-            <li><a className="transition-colors hover:text-caramel" href="#hero" onClick={(e) => { e.preventDefault(); lenisGo('#hero') }}>Home</a></li>
-            <li><a className="transition-colors hover:text-caramel" href="#categories" onClick={(e) => { e.preventDefault(); lenisGo('#categories') }}>Collections</a></li>
-            <li><a className="transition-colors hover:text-caramel" href="#lookbook" onClick={(e) => { e.preventDefault(); lenisGo('#lookbook') }}>Lookbook</a></li>
-            <li><a className="transition-colors hover:text-caramel" href="#soon" onClick={(e) => { e.preventDefault(); lenisGo('#soon') }}>E-commerce</a></li>
+            <li><Link className="transition-colors hover:text-caramel" to="/">Home</Link></li>
+            <li><Link className="transition-colors hover:text-caramel" to="/shop">Shop</Link></li>
+            <li><button className="transition-colors hover:text-caramel" onClick={() => goHomeSection('categories')}>Collections</button></li>
+            <li><button className="transition-colors hover:text-caramel" onClick={() => goHomeSection('lookbook')}>Lookbook</button></li>
+            <li><button className="transition-colors hover:text-caramel" onClick={() => goHomeSection('soon')}>Shopee</button></li>
           </ul>
         </div>
         <div className="text-sm text-ivory/70">
@@ -552,7 +550,15 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-ivory/10 py-5 text-center text-xs text-ivory/40">
-        © {new Date().getFullYear()} DK International Sdn. Bhd. — sewn with patience in Kuala Lumpur
+        © {new Date().getFullYear()} DK International Sdn. Bhd. — sewn with patience in Kuala Lumpur ·{' '}
+        <a
+          href="https://bintelfuturetech.com"
+          target="_blank"
+          rel="noreferrer"
+          className="transition-colors hover:text-caramel"
+        >
+          Developed by Bintel Future Tech
+        </a>
       </div>
     </footer>
   )

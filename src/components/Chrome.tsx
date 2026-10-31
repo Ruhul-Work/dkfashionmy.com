@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { scrollToId } from './SmoothScroll'
+import CategoryModal from './CategoryModal'
+import SearchModal from './SearchModal'
 
 /* ---------- top scroll progress bar ---------- */
 export function ScrollProgress() {
@@ -83,11 +85,29 @@ export function SectionRail({ items }: { items: RailItem[] }) {
 
 const navLinks = [
   { to: '/', label: 'Home' },
-  { to: '/about', label: 'About' },
-  { to: '/contact', label: 'Contact' },
+  { to: '/shop', label: 'Shop' },
 ]
 
 const easeExpo: [number, number, number, number] = [0.22, 1, 0.36, 1]
+
+function SearchGlyph({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  )
+}
 
 /* hides the bar on scroll-down, brings it back on scroll-up */
 function HideOnScroll({ children }: { children: React.ReactNode }) {
@@ -122,11 +142,14 @@ function HideOnScroll({ children }: { children: React.ReactNode }) {
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  const [catOpen, setCatOpen] = useState(false)
+  const [catMobileOpen, setCatMobileOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [offset, setOffset] = useState(0)
   const location = useLocation()
   const atTop = !scrolled
-  /* only the video hero is dark enough to host the transparent bar */
-  const transparent = atTop && location.pathname === '/'
+  /* Keep the navbar background visible at the top as well as while scrolling. */
+  const transparent = false
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -151,6 +174,12 @@ export function Navbar() {
   const chipBorder = transparent ? 'border-ivory/30' : 'border-hairline'
   const chipBg = transparent ? 'bg-ivory text-moss hover:bg-caramel hover:text-ivory' : 'bg-moss text-ivory hover:bg-caramel hover:text-ivory'
 
+  const triggerChip = `inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors duration-500 ${
+    transparent
+      ? 'text-ivory hover:text-caramel'
+      : 'text-moss hover:text-caramel-deep'
+  }`
+
   return (
     <>
       <HideOnScroll>
@@ -170,7 +199,7 @@ export function Navbar() {
             <div className="relative mx-auto flex h-[72px] max-w-6xl items-center px-4 sm:px-8">
               {/* left: links + mobile menu trigger */}
               <nav className="flex flex-1 items-center">
-                <ul className={`hidden items-center gap-7 transition-colors duration-500 lg:flex ${overHero}`}>
+                <ul className={`hidden items-center gap-6 transition-colors duration-500 lg:flex ${overHero}`}>
                   {navLinks.map(({ to, label }) => (
                     <li key={to}>
                       <NavLink
@@ -178,7 +207,7 @@ export function Navbar() {
                         end={to === '/'}
                         className={({ isActive }) =>
                           `relative inline-flex items-center gap-2 text-[13px] font-medium uppercase tracking-[0.2em] transition-colors duration-500 ${
-                            isActive
+                            isActive || (to === '/shop' && location.pathname.startsWith('/product/'))
                               ? overHero
                               : `${transparent ? 'hover:text-ivory' : 'text-olive hover:text-moss'}`
                           }`
@@ -189,11 +218,11 @@ export function Navbar() {
                             <span
                               aria-hidden
                               className={`h-1.5 w-1.5 rounded-full bg-caramel transition-all duration-300 ${
-                                isActive ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
+                                isActive || (to === '/shop' && location.pathname.startsWith('/product/')) ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
                               }`}
                             />
                             {label}
-                            {isActive && (
+                            {(isActive || (to === '/shop' && location.pathname.startsWith('/product/'))) && (
                               <motion.span
                                 layoutId="nav-underline"
                                 className="absolute -bottom-1.5 left-0 -z-10 h-px w-full bg-caramel"
@@ -205,6 +234,33 @@ export function Navbar() {
                       </NavLink>
                     </li>
                   ))}
+                  <li>
+                    <button
+                      type="button"
+                      aria-label="Open categories"
+                      aria-haspopup="dialog"
+                      aria-expanded={catOpen}
+                      data-cursor="hover"
+                      onClick={() => setCatOpen(true)}
+                      className={triggerChip}
+                    >
+                      Category
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      aria-label="Search pieces"
+                      data-cursor="hover"
+                      onClick={() => setSearchOpen(true)}
+                      className={`inline-flex h-9 w-9 items-center justify-center transition-all duration-300 hover:scale-110 hover:text-caramel-deep ${transparent ? 'text-ivory' : 'text-moss'}`}
+                    >
+                      <SearchGlyph />
+                    </button>
+                  </li>
                 </ul>
 
                 <button
@@ -242,19 +298,27 @@ export function Navbar() {
                 />
               </Link>
 
-              {/* right: status + contact pill */}
+              {/* right: search + status + contact pill */}
               <div className="flex flex-1 items-center justify-end gap-3">
-                <span
-                  className={`hidden items-center gap-2 text-[11px] uppercase tracking-[0.2em] transition-colors duration-500 xl:inline-flex ${
-                    transparent ? 'text-ivory' : 'text-caramel'
+                <Link
+                  to="/about"
+                  data-cursor="hover"
+                  className={`hidden text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors duration-500 xl:inline-flex ${
+                    transparent ? 'text-ivory hover:text-caramel' : 'text-moss hover:text-caramel-deep'
                   }`}
                 >
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-caramel opacity-70" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-caramel" />
-                  </span>
-                  E-shop soon
-                </span>
+                  About
+                </Link>
+                <Link
+                  to="/contact"
+                  data-cursor="hover"
+                  className={`hidden text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors duration-500 sm:inline-flex ${
+                    transparent ? 'text-ivory hover:text-caramel' : 'text-caramel hover:text-caramel-deep'
+                  }`}
+                >
+                  Contact
+                </Link>
+
 
                 <Link
                   to="https://wa.me/601137455473"
@@ -280,24 +344,38 @@ export function Navbar() {
           >
             <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-4 sm:px-8">
               <span className="text-[10px] uppercase tracking-[0.24em] text-olive">Menu</span>
-              <button
-                type="button"
-                aria-label="Close menu"
-                onClick={() => setOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-hairline"
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  aria-label="Search pieces"
+                  data-cursor="hover"
+                  onClick={() => {
+                    setOpen(false)
+                    window.setTimeout(() => setSearchOpen(true), 260)
+                  }}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-hairline"
                 >
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </button>
+                  <SearchGlyph />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Close menu"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-hairline"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <motion.nav
@@ -329,16 +407,39 @@ export function Navbar() {
                   </NavLink>
                 </motion.div>
               ))}
+              <motion.div
+                variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }}
+                transition={{ duration: 0.5, ease: easeExpo }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false)
+                    window.setTimeout(() => setCatMobileOpen(true), 260)
+                  }}
+                  className="flex w-full items-baseline gap-4 border-b border-hairline py-5 text-left"
+                >
+                  <span className="text-[10px] text-caramel">0{navLinks.length + 1}</span>
+                  <span className="flex-1 font-display text-4xl text-moss sm:text-5xl">Category</span>
+                  <span className="self-center text-caramel-deep" aria-hidden>
+                    →
+                  </span>
+                </button>
+              </motion.div>
             </motion.nav>
 
             <div className="mx-auto mt-10 max-w-6xl px-4 sm:px-8">
               <p className="text-[10px] uppercase tracking-[0.24em] text-caramel">
-                E-commerce launching soon
+                Shop our pieces on Shopee
               </p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <CategoryModal open={catOpen} onClose={() => setCatOpen(false)} />
+      <CategoryModal open={catMobileOpen} onClose={() => setCatMobileOpen(false)} mobile />
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   )
 }
@@ -353,7 +454,7 @@ export function AnnouncementBar() {
         animate={{ scale: [1, 1.4, 1] }}
         transition={{ repeat: Infinity, duration: 1.6 }}
       />
-      E-commerce launching soon — join the notify list
+      Shop our pieces on Shopee
     </div>
   )
 }

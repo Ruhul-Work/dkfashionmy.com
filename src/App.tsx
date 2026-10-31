@@ -6,8 +6,9 @@ import Preloader from './components/Preloader'
 import Cursor from './components/Cursor'
 import SmoothScroll from './components/SmoothScroll'
 import { ScrollProgress, Navbar, SectionRail, type RailItem } from './components/Chrome'
-import { Hero, Ticker, Categories, Products } from './sections/HomeTop'
-import { NewArrivals, PopularCollection } from './sections/HomeMarket'
+import { Hero, Ticker, Collections, Products } from './sections/HomeTop'
+import { NewArrivals, PopularCollection, ProductStories } from './sections/HomeMarket'
+import ProductRailSection from './sections/ProductRailSection'
 import {
   Making,
   ComingSoon,
@@ -18,6 +19,8 @@ import {
   ContactStrip,
   Footer,
 } from './sections/HomeBottom'
+import Shop from './pages/Shop'
+import ProductDetail from './pages/ProductDetail'
 import About from './pages/About'
 import Contact from './pages/Contact'
 
@@ -27,8 +30,10 @@ const railItems: RailItem[] = [
   { id: 'products', label: 'Pieces' },
   { id: 'arrivals', label: 'New Arrivals' },
   { id: 'popular', label: 'Popular' },
+  { id: 'stories', label: 'DK Edit' },
+  { id: 'rail-edit', label: 'The Rail' },
   { id: 'making', label: 'The Making' },
-  { id: 'soon', label: 'E-shop' },
+  { id: 'soon', label: 'Shopee' },
   { id: 'qualities', label: 'Why DK' },
   { id: 'lookbook', label: 'Lookbook' },
   { id: 'voices', label: 'Voices' },
@@ -39,12 +44,14 @@ const railItems: RailItem[] = [
 function Home() {
   return (
     <main>
+      <ProductRailSection />
       <Hero />
-      <Categories />
+      <Collections />
       <Ticker />
       <Products />
       <NewArrivals />
       <PopularCollection />
+      {/* <ProductStories /> */}
       <Making />
       <ComingSoon />
       <Qualities />
@@ -61,12 +68,13 @@ function PageChrome() {
   const location = useLocation()
   return (
     <>
-      <AnnouncementWrapper />
       <Navbar />
       <ScrollProgress />
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Home />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<Home />} />
@@ -74,17 +82,6 @@ function PageChrome() {
       </AnimatePresence>
       <Footer />
     </>
-  )
-}
-
-function AnnouncementWrapper() {
-  return (
-    <div
-      id="announce-bar"
-      className="bg-moss px-4 py-2 text-center text-[11px] font-medium uppercase tracking-[0.25em] text-ivory"
-    >
-      E-commerce launching soon — join the notify list
-    </div>
   )
 }
 

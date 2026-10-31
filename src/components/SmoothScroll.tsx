@@ -14,6 +14,14 @@ export function lenisGo(href: string) {
   if (lenis) lenis.scrollTo(href, { offset: -90, duration: 1.2 })
 }
 
+export function lenisStop() {
+  lenis?.stop()
+}
+
+export function lenisStart() {
+  lenis?.start()
+}
+
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation()
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   motion,
   useScroll,
@@ -7,6 +7,12 @@ import {
 } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { StaggerGroup, StepItem, CurtainImage, SectionHeading, Magnetic } from '../components/motion-kit'
+import ProductCard from '../components/ProductCard'
+import EmptyState from '../components/EmptyState'
+import { SkeletonCard } from '../components/Skeletons'
+import { useCategories, useProducts } from '../lib/hooks'
+import { subcategoryImage } from '../lib/product'
+import { assetUrl } from '../lib/api'
 import { scrollToId } from '../components/SmoothScroll'
 
 const easeSoft: [number, number, number, number] = [0.22, 0.61, 0.36, 1]
@@ -98,16 +104,6 @@ export function Hero() {
                 </motion.span>
               ))}
             </span>
-            {/* <span className="block overflow-hidden mt-0 md:-mt-8">
-              <motion.em
-                className="inline-block italic text-caramel font-extrabold"
-                initial={{ y: '110%' }}
-                animate={{ y: 0 }}
-                transition={{ duration: 0.9, delay: 0.42, ease: easeExpo }}
-              >
-                {words[3]}
-              </motion.em>
-            </span> */}
           </h1>
 
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
@@ -129,11 +125,11 @@ export function Hero() {
             >
               <Magnetic>
                 <Link
-                  to="/contact"
+                  to="/shop"
                   data-cursor="hover"
                   className="inline-flex items-center justify-center rounded-full bg-ivory px-7 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-moss transition-colors hover:bg-caramel hover:text-ivory"
                 >
-                  Contact
+                  Shop the pieces
                 </Link>
               </Magnetic>
               <Magnetic>
@@ -244,21 +240,24 @@ function Dot({ delay }: { delay: number }) {
   )
 }
 
-/* ---------------- CATEGORIES ---------------- */
+/* ---------------- COLLECTIONS (API-driven shelf) ---------------- */
 
-const categories = [
-  { name: 'T-Shirt', count: 31, src: '/products/product-12.jpg' },
-  { name: 'Jeans', count: 24, src: '/products/product-16.jpg' },
-  { name: 'Baggy Jeans', count: 18, src: '/products/product-17.jpg' },
-  { name: 'Polo', count: 15, src: 'https://images.unsplash.com/photo-1671438118097-479e63198629?q=80&w=800&auto=format&fit=crop' },
-  { name: 'Dress Shirt', count: 21, src: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=800&auto=format&fit=crop' },
-  { name: 'Cargo Pants', count: 12, src: '/products/product-07.jpg' },
-]
-
-export function Categories() {
+export function Collections() {
+  const { data: categories, loading, error, reload } = useCategories()
   const scroller = useRef<HTMLDivElement>(null)
   const [focused, setFocused] = useState<number | null>(null)
   const [progress, setProgress] = useState(0.12)
+
+  const tiles = useMemo(() => {
+    const fromSubs = (categories ?? []).flatMap((c) =>
+      (c.subcategories ?? []).map((s) => ({ cat: c, sub: s })),
+    )
+    if (fromSubs.length > 0) return fromSubs
+    return (categories ?? []).map((c) => ({
+      cat: c,
+      sub: { id: c.id, name: c.name, slug: c.slug, is_active: c.is_active },
+    }))
+  }, [categories])
 
   /* shelves are rendered twice — this is the width of one copy */
   const setW = useRef(0)
@@ -332,7 +331,7 @@ export function Categories() {
       el.removeEventListener('pointerleave', onLeave)
       el.removeEventListener('scroll', onScroll)
     }
-  }, [])
+  }, [tiles.length])
 
   return (
     <section id="categories" className="py-24">
@@ -348,19 +347,16 @@ export function Categories() {
             {/* live preview label that reacts to the hovered shelf */}
             <div className="mt-4 flex h-6 items-center gap-2 text-sm text-olive">
               <AnimatePresence mode="wait">
-                {focused !== null ? (
+                {focused !== null && tiles[focused] ? (
                   <motion.span
-                    key={`cat-${focused}`}
+                    key={`sub-${focused}`}
                     className="flex items-center gap-2 font-display text-lg italic text-caramel-deep"
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.25 }}
                   >
-                    {categories[focused].name}
-                    <span className="text-xs not-italic tracking-[0.2em] text-eucalyptus-deep">
-                      · {categories[focused].count} pieces
-                    </span>
+                    {tiles[focused].cat.name} · {tiles[focused].sub.name}
                   </motion.span>
                 ) : (
                   <motion.span
@@ -404,61 +400,85 @@ export function Categories() {
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-ivory to-transparent" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-ivory to-transparent" />
 
-        <div
-          ref={scroller}
-          className="flex gap-6 overflow-x-auto px-4 pb-6 lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          data-cursor="drag"
-        >
-          {[...categories, ...categories].map((c, i) => (
-            <motion.button
-              key={`${c.name}-${i}`}
-              onClick={() => scrollToId('products')}
-              onMouseEnter={() => setFocused(i % categories.length)}
-              onMouseLeave={() => setFocused(null)}
-              className="group relative h-[340px] w-[260px] shrink-0 overflow-hidden rounded-[1.7rem] text-left shadow-soft transition-shadow duration-500 hover:shadow-lift sm:w-[300px]"
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08, duration: 0.6, ease: easeSoft }}
-              whileHover={{ y: -10 }}
-            >
-              <CurtainImage
-                src={c.src}
-                alt={c.name}
-                className="h-full w-full"
-                imgClassName="transition-transform duration-700 group-hover:scale-110"
-                delay={i * 0.06}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-moss/75 via-transparent to-transparent" />
-              {/* shine sweep */}
-              <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                <div className="absolute -inset-y-20 left-[-30%] w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-[420%]" />
-              </div>
-              {/* count badge popping on hover */}
-              <motion.span
-                className="absolute right-4 top-4 rounded-full bg-ivory/95 px-3 py-1.5 text-[11px] font-semibold text-caramel-deep shadow-soft"
-                initial={{ opacity: 0, scale: 0.6 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.15 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 16, delay: 0.4 + i * 0.08 }}
+        {loading && (
+          <div className="flex gap-6 overflow-hidden px-4 pb-6 lg:px-8" aria-hidden>
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="h-[340px] w-[260px] shrink-0 overflow-hidden rounded-[1.7rem] img-fallback shadow-soft sm:w-[300px]"
               >
-                {c.count}
-              </motion.span>
-              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-5 text-ivory">
-                <div>
-                  <p className="font-display text-xl">{c.name}</p>
-                  <p className="text-xs uppercase tracking-[0.25em] text-ivory/70">
-                    {c.count} pieces
-                  </p>
-                </div>
-                <span className="mb-1 -translate-x-2 text-lg opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
-                  →
-                </span>
+                <div className="h-full w-full animate-pulse bg-sand/80" />
               </div>
-            </motion.button>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
+
+        {error && !loading && (
+          <EmptyState
+            title="The shelves are quiet"
+            hint={error}
+            actionLabel="Try again"
+            onAction={reload}
+          />
+        )}
+
+        {!loading && !error && tiles.length > 0 && (
+          <div
+            ref={scroller}
+            className="flex gap-6 overflow-x-auto px-4 pb-6 lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            data-cursor="drag"
+          >
+            {[...tiles, ...tiles].map((t, i) => (
+              <motion.div
+                key={`${t.sub.slug}-${i}`}
+                onMouseEnter={() => setFocused(i % tiles.length)}
+                onMouseLeave={() => setFocused(null)}
+                className="group relative h-[340px] w-[260px] shrink-0 overflow-hidden rounded-[1.7rem] img-fallback text-left shadow-soft transition-shadow duration-500 hover:shadow-lift sm:w-[300px]"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: (i % tiles.length) * 0.08, duration: 0.6, ease: easeSoft }}
+                whileHover={{ y: -10 }}
+              >
+                <Link
+                  to={
+                    t.sub.slug && t.sub.slug !== t.cat.slug
+                      ? `/shop?category=${t.cat.slug}&subcategory=${t.sub.slug}`
+                      : `/shop?category=${t.cat.slug}`
+                  }
+                  className="absolute inset-0 z-30 block"
+                  data-cursor="hover"
+                />
+                {subcategoryImage(t.sub) || assetUrl(t.cat.icon) ? (
+                  <CurtainImage
+                    src={subcategoryImage(t.sub) || assetUrl(t.cat.icon)}
+                    alt={t.sub.name}
+                    className="h-full w-full"
+                    imgClassName="transition-transform duration-700 group-hover:scale-110"
+                    delay={(i % tiles.length) * 0.06}
+                  />
+                ) : (
+                  <div className="h-full w-full" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-moss/75 via-transparent to-transparent" />
+                {/* shine sweep */}
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                  <div className="absolute -inset-y-20 left-[-30%] w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-[420%]" />
+                </div>
+                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-5 text-ivory">
+                  <p className="font-display text-xl">{t.sub.name}</p>
+                  <span className="mb-1 -translate-x-2 text-lg opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
+                    →
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {!loading && !error && tiles.length === 0 && (
+          <p className="mx-auto max-w-6xl px-4 text-sm text-olive lg:px-8">The collections are being buttoned up — check back soon.</p>
+        )}
 
         {/* scroll position meter */}
         <div className="mx-auto mt-2 max-w-6xl px-4 lg:px-8">
@@ -475,24 +495,13 @@ export function Categories() {
   )
 }
 
-/* ---------------- PRODUCTS ---------------- */
-
-const products = [
-  { name: 'Palazzo Knit — Cream', tag: 'Women', price: 'RM 69', src: '/products/product-01.jpg' },
-  { name: 'Sport Track Pants — Onyx', tag: 'Men', price: 'RM 85', src: '/products/product-02.jpg' },
-  { name: 'Sport Track Pants — Navy', tag: 'Men', price: 'RM 85', src: '/products/product-03.jpg' },
-  { name: 'Palazzo Knit — Saffron', tag: 'Women', price: 'RM 69', src: '/products/product-05.jpg' },
-  { name: 'Field Cargo — Olive', tag: 'Men', price: 'RM 105', src: '/products/product-07.jpg' },
-  { name: 'Bootcut Denim — Stone', tag: 'Women', price: 'RM 115', src: '/products/product-08.jpg' },
-  { name: 'Bushido Samurai Tee', tag: 'Men', price: 'RM 55', src: '/products/product-09.jpg' },
-  { name: 'Palazzo Knit — Blush', tag: 'Women', price: 'RM 69', src: '/products/product-10.jpg' },
-  { name: 'Sport Track Pants — Cream', tag: 'Unisex', price: 'RM 85', src: '/products/product-11.jpg' },
-  { name: 'FUTURE 2099 Tee', tag: 'Men', price: 'RM 59', src: '/products/product-12.jpg' },
-  { name: 'Bootcut Denim — Onyx', tag: 'Women', price: 'RM 115', src: '/products/product-16.jpg' },
-  { name: 'Palazzo Knit — Ash', tag: 'Women', price: 'RM 69', src: '/products/product-21.jpg' },
-]
+/* ---------------- PIECES (API-driven grid + see more) ---------------- */
 
 export function Products() {
+  const piecesQuery = useMemo(() => ({ sort_by: 'latest', per_page: 9 }) as const, [])
+  const { data, loading, error, reload } = useProducts(piecesQuery)
+  const items = data?.items ?? []
+
   return (
     <section id="products" className="bg-sand/60 py-24">
       <div className="mx-auto max-w-6xl px-4 lg:px-8">
@@ -502,40 +511,50 @@ export function Products() {
           accentWords={['lived']}
           className="mb-14"
         />
-        <div className="grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-3 lg:gap-8">
-          {products.map((p, i) => (
-            <motion.article
-              key={p.name}
-              className="group relative overflow-hidden rounded-[1.6rem] img-fallback shadow-soft transition-shadow duration-500 hover:shadow-lift"
-              initial={{ opacity: 0, y: 44 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-4% 0px' }}
-              transition={{ delay: (i % 3) * 0.09, duration: 0.6, ease: easeSoft }}
-              whileHover={{ y: -6 }}
-              style={{ aspectRatio: '3 / 3.8' }}
-            >
-              <CurtainImage
-                src={p.src}
-                alt={`${p.name} — DK Fashion ${p.tag}`}
-                className="h-full w-full"
-                imgClassName="transition-transform duration-700 group-hover:scale-105"
-                delay={(i % 3) * 0.07}
-              />
-              {/* tilt shine */}
-              <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                <div className="absolute -inset-y-20 left-[-30%] w-1/2 rotate-12 bg-gradient-to-r from-transparent via-ivory/25 to-transparent transition-transform duration-1000 group-hover:translate-x-[420%]" />
-              </div>
-              {/* info bar — always visible on small screens, hover-reveal on desktop */}
-              <div className="absolute inset-x-2 bottom-2 rounded-xl bg-ivory/95 px-3 py-2.5 backdrop-blur-md transition-transform duration-500 lg:inset-x-3 lg:bottom-3 lg:translate-y-16 lg:px-4 lg:py-3 lg:group-hover:translate-y-0">
-                <p className="font-display text-[13px] leading-snug sm:text-base">{p.name}</p>
-                <div className="mt-1 flex items-center justify-between gap-2">
-                  <span className="text-[10px] uppercase tracking-[0.18em] text-olive">{p.tag}</span>
-                  <span className="whitespace-nowrap text-[13px] font-semibold text-caramel-deep">{p.price}</span>
-                </div>
-              </div>
-            </motion.article>
-          ))}
-        </div>
+
+        {loading && (
+          <div className="grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-3 lg:gap-8">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        )}
+
+        {error && !loading && (
+          <EmptyState
+            title="The rack slipped out of reach"
+            hint={error}
+            actionLabel="Try again"
+            onAction={reload}
+          />
+        )}
+
+        {!loading && !error && items.length === 0 && (
+          <p className="text-center text-sm text-olive">Fresh pieces are still on the cutting table — check back soon.</p>
+        )}
+
+        {items.length > 0 && (
+          <>
+            <div className="grid grid-cols-2 gap-5 sm:gap-7 lg:grid-cols-3 lg:gap-8">
+              {items.map((p, i) => (
+                <ProductCard key={p.id} product={p} index={i} stepped={false} />
+              ))}
+            </div>
+
+            <div className="mt-14 flex justify-center">
+              <Magnetic>
+                <Link
+                  to="/shop"
+                  data-cursor="hover"
+                  className="inline-flex items-center gap-2 rounded-full border border-hairline bg-ivory px-8 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-moss shadow-soft transition-colors duration-300 hover:border-caramel hover:text-caramel-deep"
+                >
+                  See the full shelf
+                  <span aria-hidden>→</span>
+                </Link>
+              </Magnetic>
+            </div>
+          </>
+        )}
       </div>
     </section>
   )

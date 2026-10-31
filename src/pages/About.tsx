@@ -79,8 +79,8 @@ export default function About() {
               anything, and leave with fabric swatches in your pocket.
             </p>
             <div className="mt-8 flex gap-3">
-              <CTAButton to="/contact">Plan a visit</CTAButton>
-              <CTAButton variant="ghost" to="/">Back home</CTAButton>
+              <CTAButton to="/contact" className='px-3'>Plan a visit</CTAButton>
+              <CTAButton variant="ghost" to="/" className='px-3'>Back home</CTAButton>
             </div>
           </div>
           <SoftImage

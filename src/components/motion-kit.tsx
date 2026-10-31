@@ -126,7 +126,7 @@ export function SplitHeadline({
       }}
     >
       {words.map((w, i) => (
-        <span key={i} className="inline-block overflow-hidden pb-[0.12em] -mb-[0.12em] align-bottom">
+        <span key={i} className="inline-block overflow-hidden pt-[0.14em] -mt-[0.14em] pb-[0.14em] -mb-[0.14em] align-bottom">
           <motion.span
             className={`inline-block ${accentWords.includes(w.replace(/[.,—]/g, '')) ? 'font-display italic text-caramel' : ''}`}
             variants={{
@@ -190,6 +190,7 @@ export function Magnetic({
 
 export function CurtainImage({
   src,
+  fallbackSrc,
   alt,
   className,
   imgClassName,
@@ -197,6 +198,7 @@ export function CurtainImage({
   fallback,
 }: {
   src: string
+  fallbackSrc?: string
   alt: string
   className?: string
   imgClassName?: string
@@ -206,25 +208,40 @@ export function CurtainImage({
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-8% 0px' })
   const [ok, setOk] = useState(true)
+  const [current, setCurrent] = useState(src)
+
+  useEffect(() => {
+    setCurrent(src)
+    setOk(true)
+  }, [src])
+
+  const handleError = () => {
+    if (fallbackSrc && current !== fallbackSrc) {
+      setCurrent(fallbackSrc)
+      setOk(true)
+    } else {
+      setOk(false)
+    }
+  }
 
   return (
     <div ref={ref} className={`relative overflow-hidden img-fallback ${className ?? ''}`}>
-      {inView && (
-        <motion.img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          onError={() => setOk(false)}
-          className={`h-full w-full object-cover ${imgClassName ?? ''}`}
-          initial={{ clipPath: 'inset(100% 0% 0% 0%)', scale: 1.14 }}
-          animate={
-            ok
-              ? { clipPath: 'inset(0% 0% 0% 0%)', scale: 1 }
-              : { opacity: 0 }
-          }
-          transition={{ duration: 0.9, ease: easeSoft, delay }}
-        />
-      )}
+      <motion.img
+        src={current}
+        alt={alt}
+        loading="lazy"
+        onError={handleError}
+        className={`h-full w-full object-cover ${imgClassName ?? ''}`}
+        initial={{ clipPath: 'inset(100% 0% 0% 0%)', scale: 1.14 }}
+        animate={
+          inView && ok
+            ? { clipPath: 'inset(0% 0% 0% 0%)', scale: 1 }
+            : inView
+              ? { opacity: 0 }
+              : { clipPath: 'inset(100% 0% 0% 0%)', scale: 1.14 }
+        }
+        transition={{ duration: 0.9, ease: easeSoft, delay }}
+      />
       {!ok && <div className="absolute inset-0 img-fallback" />}
       {fallback}
     </div>
@@ -330,7 +347,7 @@ export function SectionHeading({
       <SplitHeadline
         text={title}
         accentWords={accentWords}
-        className={`font-display text-3xl leading-tight sm:text-4xl lg:text-5xl ${align === 'center' ? 'mx-auto max-w-3xl' : ''}`}
+        className={`font-display text-3xl leading-[1.08] sm:text-4xl lg:text-5xl ${align === 'center' ? 'mx-auto max-w-3xl' : ''}`}
       />
     </div>
   )
