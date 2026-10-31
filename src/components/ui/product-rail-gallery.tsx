@@ -26,6 +26,14 @@ export interface RailGarment {
   tag?: string;
   /** Short facts listed in the detail view. */
   details?: string[];
+  /** Additional product information shown in the detail modal. */
+  material?: string;
+  fit?: string;
+  care?: string;
+  colorName?: string;
+  sku?: string;
+  shipping?: string;
+  returns?: string;
 }
 
 export interface ClothingRailHeroLabels {
@@ -931,8 +939,8 @@ export function ClothingRailHero({
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10" style={{ background: "radial-gradient(120% 70% at 18% 0%, color-mix(in oklab, var(--color-foreground) 7%, transparent), transparent 62%), linear-gradient(to bottom, transparent 55%, color-mix(in oklab, var(--color-foreground) 5%, transparent))" }} />
       {(eyebrow || heading) && (
         <header className="relative z-10 flex flex-col items-center gap-2 px-6 pt-8 text-center">
-          {eyebrow && <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-muted-foreground">{eyebrow}</p>}
-          {heading && <h2 className="text-balance text-2xl font-medium tracking-tight sm:text-3xl">{heading}</h2>}
+          {eyebrow && <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground sm:text-sm">{eyebrow}</p>}
+          {heading && <h2 className="max-w-3xl text-balance text-3xl font-medium leading-tight tracking-tight sm:text-4xl lg:text-5xl">{heading}</h2>}
         </header>
       )}
 
@@ -1033,7 +1041,7 @@ export function ClothingRailHero({
 
       <div className="relative z-10 flex flex-col items-center gap-4 px-6 pb-8 pt-4 text-center">
         <div id={`${uid}-caption`} aria-live="polite" className="min-h-[3.25rem]">
-          <p key={current?.id ?? "caption"} className="animate-in fade-in text-sm font-medium [animation-duration:300ms] motion-reduce:animate-none">{current ? current.name : caption}</p>
+          <p key={current?.id ?? "caption"} className="animate-in fade-in text-base font-medium [animation-duration:300ms] motion-reduce:animate-none sm:text-lg">{current ? current.name : caption}</p>
           {current?.description && <p key={`${current.id}-d`} className="mx-auto mt-1 max-w-[42ch] text-[13px] leading-relaxed text-muted-foreground">{current.description}</p>}
         </div>
         {action}
@@ -1176,7 +1184,7 @@ function Detail({ uid, item, index, total, hanger, labels, reduced, source, onLi
   };
 
   const stage = (
-    <div ref={figureRef} className="relative mx-auto aspect-[200/310] h-[min(62vh,560px)] max-h-full origin-top">
+    <div ref={figureRef} className="relative mx-auto aspect-[200/310] h-[min(40vh,360px)] max-h-full origin-top sm:h-[min(62vh,560px)]">
       <div aria-hidden="true" className="absolute left-1/2 top-[-40vh] h-[40vh] w-[3px] -translate-x-1/2 rounded-full" style={{ background: "linear-gradient(to right, color-mix(in oklab, var(--color-muted-foreground) 50%, white), var(--color-muted-foreground), color-mix(in oklab, var(--color-muted-foreground) 50%, black))", top: `calc(-40vh + ${(HOOK_TOP / VB_H) * 100}%)` }} />
       <div
         className="absolute inset-0 cursor-grab touch-pan-y active:cursor-grabbing"
@@ -1201,18 +1209,58 @@ function Detail({ uid, item, index, total, hanger, labels, reduced, source, onLi
   );
 
   return createPortal(
-    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto p-6 text-foreground" onKeyDown={onKeyDown}>
-      <div aria-hidden="true" className={`absolute inset-0 bg-background/90 backdrop-blur-xl transition-opacity duration-300 motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`} onClick={dismiss} />
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="fixed inset-0 z-[100] flex items-start justify-center overflow-hidden p-4 text-foreground sm:items-center sm:p-6" onKeyDown={onKeyDown}>
+      <div aria-hidden="true" className={`absolute inset-0 bg-background backdrop-blur-xl transition-opacity duration-300 motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`} onClick={dismiss} />
       <button ref={closeRef} type="button" onClick={dismiss} className={`absolute right-5 top-5 z-[110] inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium tracking-wide text-muted-foreground outline-none transition-[opacity,color] duration-300 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`}>
         {labels.close}
         <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M3 3l10 10M13 3L3 13" /></svg>
       </button>
-      <div className="relative grid w-full max-w-5xl items-center gap-10 pt-10 md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+      <div className="relative max-h-[calc(100dvh-2rem)] w-full max-w-5xl overflow-y-auto overscroll-contain pb-8 pt-12 [scrollbar-width:none] sm:max-h-[calc(100dvh-3rem)] sm:overflow-visible sm:pb-0 sm:pt-10 [&::-webkit-scrollbar]:hidden">
+        <div className="grid grid-cols-1 items-center gap-6 sm:gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         {stage}
         <div className={`flex flex-col gap-4 text-center transition-[opacity,transform] delay-150 duration-500 motion-reduce:transition-none md:text-left ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
           <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground">{String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}</p>
           <h3 id={titleId} className="text-2xl font-medium tracking-tight sm:text-3xl">{item.name}</h3>
           {item.description && <p className="text-sm leading-relaxed text-muted-foreground">{item.description}</p>}
+          <div className="grid grid-cols-1 gap-3 border-y border-border py-3 text-left min-[380px]:grid-cols-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Price</p>
+              <p className="mt-1 text-sm font-semibold">{item.tag ?? "Made to order"}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Status</p>
+              <p className="mt-1 text-sm font-semibold">In stock</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Delivery</p>
+              <p className="mt-1 text-sm font-semibold">2–4 days</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-3 text-left min-[380px]:grid-cols-2">
+            {[
+              ["Material", item.material ?? "Premium blended fabric"],
+              ["Fit", item.fit ?? "Relaxed everyday fit"],
+              ["Colour", item.colorName ?? "Seasonal colour"],
+              ["Product code", item.sku ?? `DK-${String(index + 1).padStart(3, "0")}`],
+              ["Care", item.care ?? "Follow the care label"],
+              ["Shipping", item.shipping ?? "Free delivery over $100"],
+            ].map(([label, value]) => (
+              <div key={label}>
+                <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
+                <p className="mt-1 text-sm leading-snug">{value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/60 p-3 text-left text-xs leading-relaxed text-muted-foreground">
+            <p><span className="font-semibold text-foreground">Dispatch:</span> {item.shipping ?? "Ships within 1–2 business days"}</p>
+            <p><span className="font-semibold text-foreground">Returns:</span> {item.returns ?? "30-day easy returns"}</p>
+          </div>
+          <button
+            type="button"
+            className="inline-flex w-full items-center justify-center rounded-full bg-foreground px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-background transition-colors hover:bg-caramel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            Order now
+          </button>
           {item.details && item.details.length > 0 && (
             <ul className="flex flex-wrap justify-center gap-2 md:justify-start">
               {item.details.map((detail) => <li key={detail} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">{detail}</li>)}
@@ -1226,6 +1274,7 @@ function Detail({ uid, item, index, total, hanger, labels, reduced, source, onLi
               </button>
             ))}
           </div>
+        </div>
         </div>
       </div>
     </div>,
