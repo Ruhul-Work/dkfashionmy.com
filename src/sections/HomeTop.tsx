@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   motion,
-  useScroll,
-  useTransform,
   AnimatePresence,
 } from 'framer-motion'
 import { Link } from 'react-router-dom'
@@ -16,183 +14,105 @@ import { assetUrl } from '../lib/api'
 import { scrollToId } from '../components/SmoothScroll'
 
 const easeSoft: [number, number, number, number] = [0.22, 0.61, 0.36, 1]
-const easeExpo: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
 /* ---------------- HERO ---------------- */
 export function Hero() {
-  const ref = useRef<HTMLElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [playing, setPlaying] = useState(true)
-
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
-  const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.14])
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, 80])
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0])
-
-  const words = ['Clothing', 'that', 'carries', 'calm']
-
-  const toggleVideo = () => {
-    const video = videoRef.current
-    if (!video) return
-    if (video.paused) {
-      void video.play()
-      setPlaying(true)
-    } else {
-      video.pause()
-      setPlaying(false)
-    }
-  }
-
   return (
-    <section
-      ref={ref}
-      id="hero"
-      className="relative flex min-h-[97svh] flex-col justify-center overflow-hidden bg-moss"
-    >
-      {/* background video */}
-      <motion.div style={{ scale: videoScale }} className="absolute inset-0 will-change-transform">
+    <section id="hero" className="relative overflow-hidden border-y border-hairline bg-sand">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:gap-20 lg:py-24">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.7 }}
+        >
+          <p className="mb-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-olive">
+            <span className="h-1.5 w-1.5 rounded-full bg-caramel" />
+            The DK edit · Kuala Lumpur
+          </p>
+          <h1 className="max-w-3xl font-display text-[clamp(2.75rem,7vw,6.5rem)] leading-[0.95] tracking-[-0.04em] text-moss">
+            Clothing that <em className="text-caramel">carries calm.</em>
+          </h1>
+        </motion.div>
+        <motion.div
+          className="flex flex-col gap-7 lg:pb-2"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.7, delay: 0.12 }}
+        >
+          <p className="max-w-md text-base leading-relaxed text-olive sm:text-lg">
+            Tailored in small batches, worn for years. Natural fabrics, quiet
+            tailoring and everyday pieces made to stay in rotation.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Magnetic>
+              <Link
+                to="/shop"
+                data-cursor="hover"
+                className="inline-flex items-center justify-center rounded-full bg-moss px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.18em] text-ivory transition-colors hover:bg-caramel"
+              >
+                Shop the pieces
+              </Link>
+            </Magnetic>
+            <button
+              type="button"
+              onClick={() => scrollToId('categories')}
+              data-cursor="hover"
+              className="inline-flex items-center gap-2 px-3 py-3.5 text-xs font-semibold uppercase tracking-[0.18em] text-moss transition-colors hover:text-caramel"
+            >
+              Explore the edit <span aria-hidden>↘</span>
+            </button>
+          </div>
+        </motion.div>
+      </div>
+      <div aria-hidden className="absolute -bottom-20 -right-8 h-64 w-64 rounded-full border border-caramel/30 sm:-right-16 sm:h-96 sm:w-96" />
+    </section>
+  )
+}
+
+export function VideoShowcase() {
+  return (
+    <section id="campaign" className="relative overflow-hidden bg-moss text-ivory">
+      <div className="relative min-h-[72svh]">
         <video
-          ref={videoRef}
-          className="h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover"
           autoPlay
           muted
           loop
           playsInline
           preload="metadata"
           poster="/video/poster.jpg"
+          aria-label="DK Fashion collection campaign"
         >
           <source src="/video/brand-web.mp4" type="video/mp4" />
         </video>
-      </motion.div>
-
-      {/* readability scrim */}
-      <div className="absolute inset-0 bg-gradient-to-t from-moss/90 via-moss/55 to-moss/40" />
-
-      {/* content */}
-      <motion.div
-        style={{ y: contentY, opacity: contentOpacity }}
-        className="relative mx-auto w-full max-w-6xl px-4 pb-24 pt-32 sm:px-8 lg:pb-28 lg:pt-36"
-      >
-        <div className="flex flex-col gap-7">
+        <div className="absolute inset-0 bg-gradient-to-r from-moss/85 via-moss/45 to-moss/20" />
+        <div className="relative mx-auto flex min-h-[72svh] max-w-6xl items-end px-4 py-12 sm:px-8 sm:py-16">
           <motion.div
-            className="flex flex-wrap items-center gap-4"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: easeExpo }}
+            className="max-w-xl"
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 0.7 }}
           >
-            <span className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.3em] text-ivory/85">
-              <span className="h-1.5 w-1.5 rounded-full bg-caramel" />
-              Craft-first · For him &amp; for her
-            </span>
-            <span className="hidden h-px flex-1 bg-ivory/25 sm:block" />
-            <span className="text-[11px] uppercase tracking-[0.3em] text-ivory/60">
-              Kuala Lumpur, Malaysia
-            </span>
+            <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.3em] text-ivory/75">
+              The quiet collection · 2026
+            </p>
+            <h2 className="font-display text-4xl leading-[0.95] tracking-[-0.03em] sm:text-6xl lg:text-7xl">
+              Made slowly.
+              <br />
+              <em className="text-caramel">Worn endlessly.</em>
+            </h2>
+            <p className="mt-6 max-w-md text-sm leading-relaxed text-ivory/75 sm:text-base">
+              A closer look at the textures, movement and everyday rhythm behind
+              the DK collection.
+            </p>
           </motion.div>
-
-          <h1 className="font-display font-extrabold text-[clamp(2.75rem,9vw,7rem)] font-normal leading-[1] tracking-[-0.02em] text-ivory">
-            <span className="block overflow-hidden">
-              {words.slice(0, 4).map((w, i) => (
-                <motion.span
-                  key={w + i}
-                  className="inline-block whitespace-nowrap pr-[0.25em] font-extrabold"
-                  initial={{ y: '110%' }}
-                  animate={{ y: 0 }}
-                  transition={{ duration: 0.9, delay: 0.15 + i * 0.08, ease: easeExpo }}
-                >
-                  {i === 3 ? <em className="italic text-caramel">{w}</em> : w}
-                </motion.span>
-              ))}
-            </span>
-          </h1>
-
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <motion.p
-              className="max-w-xl text-base leading-relaxed text-ivory/75 sm:text-lg"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.8, ease: easeExpo }}
-            >
-              Tailored in small batches, worn for years. Natural fabrics, quiet
-              tailoring and everyday pieces made to stay in rotation.
-            </motion.p>
-
-            <motion.div
-              className="flex items-center gap-3"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.85, duration: 0.8, ease: easeExpo }}
-            >
-              <Magnetic>
-                <Link
-                  to="/shop"
-                  data-cursor="hover"
-                  className="inline-flex items-center justify-center rounded-full bg-ivory px-7 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-moss transition-colors hover:bg-caramel hover:text-ivory"
-                >
-                  Shop the pieces
-                </Link>
-              </Magnetic>
-              <Magnetic>
-                <button
-                  type="button"
-                  onClick={() => scrollToId('categories')}
-                  data-cursor="hover"
-                  className="inline-flex items-center justify-center rounded-full border border-ivory/40 px-7 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-ivory transition-colors hover:border-caramel hover:text-caramel"
-                >
-                  Explore
-                </button>
-              </Magnetic>
-            </motion.div>
-          </div>
         </div>
-      </motion.div>
-
-      {/* bottom rail: scroll cue + video toggle */}
-      <div className="absolute inset-x-0 bottom-6 mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-8">
-        <motion.button
-          type="button"
-          onClick={() => scrollToId('categories')}
-          className="group flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] text-ivory/70 transition-colors hover:text-caramel"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, duration: 0.6 }}
-        >
-          <span aria-hidden className="relative block h-8 w-px overflow-hidden bg-ivory/25">
-            <motion.span
-              className="absolute inset-x-0 top-0 block h-3 bg-caramel"
-              animate={{ y: ['-100%', '300%'] }}
-              transition={{ duration: 1.9, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          </span>
-          Scroll
-        </motion.button>
-
-        <motion.div
-          className="flex items-center gap-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, duration: 0.6 }}
-        >
-          <span className="hidden text-[10px] uppercase tracking-[0.3em] text-ivory/40 sm:block">
-            Est. 2026 · Kuala Lumpur
-          </span>
-          <button
-            type="button"
-            onClick={toggleVideo}
-            aria-label={playing ? 'Pause background video' : 'Play background video'}
-            className="group inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-ivory/70 transition-colors hover:text-caramel"
-          >
-            {playing ? 'Pause' : 'Play'}
-            <span
-              aria-hidden
-              className={`flex h-6 w-10 items-center rounded-full border border-ivory/30 px-1 transition-colors group-hover:border-caramel ${
-                playing ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              <span className="h-3 w-3 rounded-full bg-caramel" />
-            </span>
-          </button>
-        </motion.div>
+        <div className="absolute bottom-6 right-4 hidden text-[10px] uppercase tracking-[0.3em] text-ivory/60 sm:right-8 sm:block">
+          DK / Motion study
+        </div>
       </div>
     </section>
   )

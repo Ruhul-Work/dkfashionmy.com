@@ -6,8 +6,8 @@ import Preloader from './components/Preloader'
 import Cursor from './components/Cursor'
 import SmoothScroll from './components/SmoothScroll'
 import { ScrollProgress, Navbar, SectionRail, type RailItem } from './components/Chrome'
-import { Hero, Ticker, Collections, Products } from './sections/HomeTop'
-import { NewArrivals, PopularCollection, ProductStories } from './sections/HomeMarket'
+import { Hero, VideoShowcase, Ticker, Collections, Products } from './sections/HomeTop'
+import { NewArrivals, PopularCollection } from './sections/HomeMarket'
 import ProductRailSection from './sections/ProductRailSection'
 import {
   Making,
@@ -45,8 +45,9 @@ function Home() {
   return (
     <main>
       <ProductRailSection />
-      <Hero />
       <Collections />
+      <Hero />
+      <VideoShowcase />
       <Ticker />
       <Products />
       <NewArrivals />
