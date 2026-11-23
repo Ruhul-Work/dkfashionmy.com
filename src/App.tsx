@@ -6,7 +6,7 @@ import Preloader from './components/Preloader'
 import Cursor from './components/Cursor'
 import SmoothScroll from './components/SmoothScroll'
 import { ScrollProgress, Navbar, SectionRail, type RailItem } from './components/Chrome'
-import { Hero, VideoShowcase, Ticker, Collections, Products } from './sections/HomeTop'
+import { Ticker, Collections, Products } from './sections/HomeTop'
 import { NewArrivals, PopularCollection } from './sections/HomeMarket'
 import ProductRailSection from './sections/ProductRailSection'
 import {
@@ -30,7 +30,6 @@ const railItems: RailItem[] = [
   { id: 'products', label: 'Pieces' },
   { id: 'arrivals', label: 'New Arrivals' },
   { id: 'popular', label: 'Popular' },
-  { id: 'stories', label: 'DK Edit' },
   { id: 'rail-edit', label: 'The Rail' },
   { id: 'making', label: 'The Making' },
   { id: 'soon', label: 'Shopee' },
@@ -46,13 +45,12 @@ function Home() {
     <main>
       <ProductRailSection />
       <Collections />
-      <Hero />
-      <VideoShowcase />
+      {/* <Hero /> */}
+      {/* <VideoShowcase /> */}
       <Ticker />
       <Products />
       <NewArrivals />
       <PopularCollection />
-      {/* <ProductStories /> */}
       <Making />
       <ComingSoon />
       <Qualities />

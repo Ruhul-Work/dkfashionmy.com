@@ -49,6 +49,13 @@ export interface Product {
   size?: ProductSize | null
 }
 
+export interface Product3DActive extends Product {
+  front_view_url?: string | null
+  back_view_url?: string | null
+  side_view_url?: string | null
+  '3d_active'?: boolean | number | null
+}
+
 export interface ProductDetail extends Product {
   short_description?: string | null
   description?: string | null
@@ -76,6 +83,13 @@ export interface PaginationMeta {
   last_page: number
   per_page: number
   total: number
+}
+
+export interface WebsiteSettings {
+  company_name?: string
+  currency_code?: string
+  logo?: string | null
+  [key: string]: unknown
 }
 
 export interface PagedProducts {

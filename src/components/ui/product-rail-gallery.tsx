@@ -34,6 +34,16 @@ export interface RailGarment {
   sku?: string;
   shipping?: string;
   returns?: string;
+  /** Raw buy-facing price (for discount math). */
+  price?: string | number | null;
+  /** MRP / list price (for discount math). */
+  mrp?: string | number | null;
+  /** Formatted MRP string using company currency. */
+  mrpTag?: string;
+  /** Category name shown in the modal. */
+  category?: string | null;
+  /** External buy link (e.g. Shopee). */
+  shopeeUrl?: string | null;
 }
 
 export interface ClothingRailHeroLabels {
@@ -1220,16 +1230,25 @@ function Detail({ uid, item, index, total, hanger, labels, reduced, source, onLi
         {stage}
         <div className={`flex flex-col gap-4 text-center transition-[opacity,transform] delay-150 duration-500 motion-reduce:transition-none md:text-left ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
           <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground">{String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}</p>
+          {item.category && <span className="inline-flex w-fit items-center rounded-full border border-border bg-muted px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{item.category}</span>}
           <h3 id={titleId} className="text-2xl font-medium tracking-tight sm:text-3xl">{item.name}</h3>
-          {item.description && <p className="text-sm leading-relaxed text-muted-foreground">{item.description}</p>}
-          <div className="grid grid-cols-1 gap-3 border-y border-border py-3 text-left min-[380px]:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 border-y border-border py-3 text-left min-[380px]:grid-cols-2">
             <div>
               <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Price</p>
-              <p className="mt-1 text-sm font-semibold">{item.tag ?? "Made to order"}</p>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Status</p>
-              <p className="mt-1 text-sm font-semibold">In stock</p>
+              <p className="mt-1 text-sm font-semibold">{item.tag ?? "Made to order"}
+                {(() => {
+                  const p = Number(item.price)
+                  const m = Number(item.mrp)
+                  if (!Number.isFinite(p) || !Number.isFinite(m) || m <= p || m <= 0) return null
+                  const pct = Math.round((1 - p / m) * 100)
+                  return (
+                    <>
+                      <span className="ml-2 text-xs font-normal text-muted-foreground line-through">{item.mrpTag ?? item.mrp}</span>
+                      <span className="ml-2 text-xs font-semibold text-emerald-600">{pct}% off</span>
+                    </>
+                  )
+                })()}
+              </p>
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Delivery</p>
@@ -1240,10 +1259,8 @@ function Detail({ uid, item, index, total, hanger, labels, reduced, source, onLi
             {[
               ["Material", item.material ?? "Premium blended fabric"],
               ["Fit", item.fit ?? "Relaxed everyday fit"],
-              ["Colour", item.colorName ?? "Seasonal colour"],
               ["Product code", item.sku ?? `DK-${String(index + 1).padStart(3, "0")}`],
               ["Care", item.care ?? "Follow the care label"],
-              ["Shipping", item.shipping ?? "Free delivery over $100"],
             ].map(([label, value]) => (
               <div key={label}>
                 <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
@@ -1252,15 +1269,25 @@ function Detail({ uid, item, index, total, hanger, labels, reduced, source, onLi
             ))}
           </div>
           <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/60 p-3 text-left text-xs leading-relaxed text-muted-foreground">
-            <p><span className="font-semibold text-foreground">Dispatch:</span> {item.shipping ?? "Ships within 1–2 business days"}</p>
             <p><span className="font-semibold text-foreground">Returns:</span> {item.returns ?? "30-day easy returns"}</p>
           </div>
-          <button
-            type="button"
-            className="inline-flex w-full items-center justify-center rounded-full bg-foreground px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-background transition-colors hover:bg-caramel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            Order now
-          </button>
+          {item.shopeeUrl ? (
+            <a
+              href={item.shopeeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full items-center justify-center rounded-full bg-foreground px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-background transition-colors hover:bg-caramel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              Buy on Shopee
+            </a>
+          ) : (
+            <button
+              type="button"
+              className="inline-flex w-full items-center justify-center rounded-full bg-foreground px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-background transition-colors hover:bg-caramel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              Order now
+            </button>
+          )}
           {item.details && item.details.length > 0 && (
             <ul className="flex flex-wrap justify-center gap-2 md:justify-start">
               {item.details.map((detail) => <li key={detail} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">{detail}</li>)}

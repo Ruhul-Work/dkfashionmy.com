@@ -1,4 +1,4 @@
-import type { Category, PagedProducts, PaginationMeta, Product, ProductDetail, ProductSort } from './types'
+import type { Category, PagedProducts, PaginationMeta, Product, Product3DActive, ProductDetail, ProductSort, WebsiteSettings } from './types'
 
 const rawBase = import.meta.env.VITE_API_URL ?? ''
 export const API_BASE = rawBase.replace(/\/+$/, '')
@@ -92,5 +92,20 @@ export async function fetchProduct(slug: string, signal?: AbortSignal): Promise<
 export async function fetchCategories(signal?: AbortSignal): Promise<Category[]> {
   const json = await request<Envelope<Category[]>>(`/categories`, signal)
   const { items } = extractList<Category>(json)
+  return items
+}
+
+export async function fetchWebsiteSettings(signal?: AbortSignal): Promise<WebsiteSettings | null> {
+  try {
+    const json = await request<Envelope<WebsiteSettings>>(`/website-settings`, signal)
+    return (json.data ?? null) as WebsiteSettings | null
+  } catch {
+    return null
+  }
+}
+
+export async function fetch3DActiveProducts(signal?: AbortSignal): Promise<Product3DActive[]> {
+  const json = await request<Envelope<Product3DActive[]>>(`/products/3d-active`, signal)
+  const { items } = extractList<Product3DActive>(json)
   return items
 }
